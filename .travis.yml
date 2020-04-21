@@ -1,0 +1,32 @@
+language: go
+
+arch:
+  - amd64
+  - arm64
+  - ppc64le
+  - s390x
+
+go:
+  - 1.13.x
+
+sudo: required
+
+services:
+  - docker
+before_install:
+  - docker system prune -af
+  # install heroku CLI
+  - wget -qO- https://toolbelt.heroku.com/install.sh | sh
+  # login to docker registries (dockerhub + heroku)
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - echo "$HEROKU_USERNAME "| docker login --username=$HEROKU_USERNAME  --password=$HEROKU_API_KEY registry.heroku.com
+script:
+  - /bin/sh -c './build/build.sh'
+deploy:
+  skip_cleanup: true
+  provider: script
+  script:
+    # push to dockerhub & heroku
+    - /bin/sh -c './build/push.sh'
+  on:
+    branch: master
